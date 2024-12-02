@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>智能聊天机器人</title>
+	<link rel="stylesheet" href="../static/layui/css/layui.css">
+</head>
+    <body>
+        <div>
+            <form class="layui-form" action="">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">ASR引擎</label>
+                    <div class="layui-input-block">
+                        <select name="asr_engine" lay-filter="aihao">
+                          <option value=""></option>
+                          <option value="faster_whisper" selected>faster_whisper</option>
+                          <option value="openai_whisper">openai_whisper</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">模型</label>
+                    <div class="layui-input-block">
+                        <select name="model_name" lay-filter="model_name">
+                            <option value=""></option>
+                            <option value="tiny">tiny</option>
+                            <option value="tiny.en">tiny.en</option>
+                            <option value="base">base</option>
+                            <option value="base.en">base.en</option>
+                            <option value="small" selected>small</option>
+                            <option value="small.en">small.en</option>
+                            <option value="medium">medium</option>
+                            <option value="medium.en">medium.en</option>
+                            <option value="large-v1">large-v1</option>
+                            <option value="large-v2">large-v2</option>
+                            <option value="large-v3">large-v3</option>
+                            <option value="large-v3-turbo">large-v3-turbo</option>
+                          </select>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">设备</label>
+                    <div class="layui-input-block">
+                        <select name="device" lay-filter="device">
+                            <option value=""></option>
+                            <option value="cpu">cpu</option>
+                            <option value="cuda" selected>cuda</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">线程数</label>
+                        <div class="layui-input-inline" style="width: 100px;">
+                          <input type="number" name="cpu_threads" placeholder="" autocomplete="off" class="layui-input" min="0" step="1" lay-affix="number" value="4">
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <label class="layui-form-label">工作核心数</label>
+                        <div class="layui-input-inline" style="width: 100px;">
+                          <input type="number" name="num_works" placeholder="" autocomplete="off" class="layui-input" min="1" step="1" lay-affix="number" value="8">
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-input-block">
+                      <button type="submit" class="layui-btn" lay-submit lay-filter="init-model-btn">立即提交</button>
+                      <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                    </div>
+                  </div>	
+            </form>
+        </div>
+            <script src="../static/layui/layui.js"></script>
+            <script>
+                layui.use(function(){
+                var $ = layui.$;
+                var form = layui.form;
+                var layer = layui.layer;
+                var baseUrl = window.location.origin;
+                var token = localStorage.getItem('token');
+                // 提交事件
+                form.on('submit(init-model-btn)', function(data){
+                    var field = data.field; // 获取表单字段值
+                    $.ajax({
+                        url: 'http://127.0.0.1/api/init',
+                        method: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify(field),
+                        headers: {
+                            'token': token
+                        },
+                        success: function(response) {
+                            var code = response.code
+                            if (code === 200) {
+                                    localStorage.setItem('asr_engine', response.data.asr_engine);
+                                    layer.msg('模型初始化成功', {
+                                    time: 1000,
+                                    end: function() {
+                                        window.location.href = baseUrl + '/html/index.html';
+                                    }
+                                })
+                            } else {
+                                layer.msg('模型初始化失败');
+                            }
+                        },
+                        error: function(jqXHR, textStatus, errorThrown) {
+                            layer.alert('请求失败: ' + textStatus);
+                        }
+                    })
+                    return false; // 阻止默认 form 跳转
+                });
+                });
+            </script>
+    </body>
+</html>
